@@ -1,0 +1,29 @@
+server:
+  # from config is 8181
+  port: 8180
+spring:
+  application:
+    name: skt-ms-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: skt-ms-tester
+          uri: lb://skt-ms-tester
+          predicates:
+            - Path=/ms-tester/**
+          filters:
+            - RewritePath=/ms-tester/(?<path>.*), /$\{path}
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway
+eureka:
+  config:
+    import: optional:file:.env[.properties]
+  client:
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: ${EUREKA_URL}

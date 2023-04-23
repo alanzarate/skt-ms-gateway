@@ -1,0 +1,36 @@
+version: "2.4"
+networks:
+  custom-network:
+    external: true
+services:
+  skt-ms-discovery:
+    container_name: skt-ms-discovery
+    image: ms-discovery:1.0.0
+    mem_limit: 1024m
+    ports:
+      - "8707:8707"
+    environment:
+      EUREKA_URL: http://skt-ms-discovery:8707/eureka/
+      CONFIG_SERVER_URL: http://skt-ms-config-server:8888
+      SPRING_PROFILE: ${SPRING_PROFILE}
+    networks:
+      - custom-network
+
+  skt-ms-gateway:
+    container_name: skt-ms-gateway
+    image: ms-gateway:1.0.0
+    mem_limit: 512m
+    ports:
+      - "8181:8181"
+    environment:
+      EUREKA_URL: http://skt-ms-discovery:8707/eureka/
+      CONFIG_SERVER_URL: http://skt-ms-config-server:8888
+      SPRING_PROFILE: ${SPRING_PROFILE}
+    depends_on:
+      - skt-ms-discovery
+    networks:
+      - custom-network
+
+
+
+
