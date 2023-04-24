@@ -16,4 +16,5 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 ENV EUREKA_URL=$EUREKA_URL
+ENV CONFIG_URL=$CONFIG_URL
 ENTRYPOINT ["java", "-cp","app:app/lib/*", "com.ucb.bo.sktmsgateway.SktMsGatewayApplicationKt"]
