@@ -13,6 +13,12 @@ spring:
             - Path=/ms-tester/**
           filters:
             - RewritePath=/ms-tester/(?<path>.*), /$\{path}
+        - id: skt-ms-auth
+          uri: http://localhost:8080
+          predicates:
+            - Path=/ms-auth/**
+          filters:
+            - RewritePath=/ms-auth/(?<path>.*), /$\{path}
 
 
 management:
@@ -24,6 +30,7 @@ eureka:
   config:
     import: optional:file:.env[.properties]
   client:
+    enabled: false
     registerWithEureka: true
     serviceUrl:
       defaultZone: ${EUREKA_URL:http://localhost:8707/eureka/}
