@@ -1,4 +1,15 @@
-version: "2.4"
+version: "3.4"
+x-common-variables: &common-variables
+  EUREKA_URL: http://skt-ms-discovery:8707/eureka/
+  CONFIG_SERVER_URL: ${CONFIG_SERVER_URL}
+  ZIPKIN_URL: ${ZIPKIN_URL}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+  POSTGRES_URL: ${POSTGRES_URL}
+  SERVER_PROFILE: ${SERVER_PROFILE}
+  LOGS_URI: ${LOGS_URI}
+  URL_KEYCLOAK: ${URL_KEYCLOAK}
+
 networks:
   custom-network:
     external: true
@@ -6,31 +17,158 @@ services:
   skt-ms-discovery:
     container_name: skt-ms-discovery
     image: ms-discovery:1.0.0
-    mem_limit: 1024m
     ports:
       - "8707:8707"
     environment:
-      EUREKA_URL: http://skt-ms-discovery:8707/eureka/
-      CONFIG_SERVER_URL: http://142.93.125.216:9090/
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      <<: *common-variables
+      SERVER_PROFILE: ${SERVER_PROFILE}
+    # mem_limit: 1024m
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
     networks:
       - custom-network
 
   skt-ms-gateway:
     container_name: skt-ms-gateway
     image: ms-gateway:1.0.0
-    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     ports:
       - "8181:8181"
     environment:
-      EUREKA_URL: http://skt-ms-discovery:8707/eureka/
-      CONFIG_SERVER_URL: http://142.93.125.216:9090/
-      SPRING_PROFILE: ${SPRING_PROFILE}
+      <<: *common-variables
+      SERVER_PROFILE: ${SERVER_PROFILE}
+    depends_on:
+      - skt-ms-discovery
+    networks:
+      - custom-network
+
+  skt-ms-user:
+    container_name: skt-ms-user
+    image: ms-user:1.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    ports:
+      - "7982:7982"
+    environment:
+      <<: *common-variables
+      URL_KEYCLOAK: ${URL_KEYCLOAK}
+      REALM_KEYCLOAK: ${REALM_KEYCLOAK}
+      RESOURCE_KEYCLOAK: ms-user
+      MASTER_ACCESS_KEY: ${MASTER_ACCESS_KEY}
+      MASTER_SECRET_KEY: ${MASTER_SECRET_KEY}
+      SECRET_CREDENTIAL_KEYCLOAK: kUc0rQpCPU5LYZwBVxTOkSGnuk3ucQhX
+
+
+    volumes:
+      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
     depends_on:
       - skt-ms-discovery
     networks:
       - custom-network
 
 
+  skt-ms-inventory:
+    container_name: skt-ms-inventory
+    image: ms-inventory:1.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    ports:
+      - "7071:7071"
+    environment:
+      <<: *common-variables
+      SERVER_URI: ${CONFIG_SERVER_URL}
 
+    volumes:
+      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
+    depends_on:
+      - skt-ms-discovery
+    restart: always
+    networks:
+      - custom-network
 
+  skt-ms-minio:
+    container_name: skt-ms-minio
+    image: ms-minio:1.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    ports:
+      - "8568:8568"
+    environment:
+      <<: *common-variables
+      SKT_MS_MINIO_PORT: 8568
+      RESOURCE_KEYCLOAK: ms-minio
+      MASTER_ACCESS_KEY: ${MASTER_ACCESS_KEY}
+      MASTER_SECRET_KEY: ${MASTER_SECRET_KEY}
+      URL_KEYCLOAK: ${URL_KEYCLOAK}
+      SECRET_CREDENTIAL_KEYCLOAK: BYpc4UpwCb9smAiCbohP6WaPZh9UZnFV
+      MINIO_URL: http://161.35.97.105:9000
+      MINIO_BUCKET: prod
+      MINIO_ACCESS_KEY: a1LGOl4Jadgomtn4
+      MINIO_SECRET_KEY: OlLRoe766VCKbjAOkfWRoJODXWcLQ5YJ
+
+    volumes:
+      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
+    depends_on:
+      - skt-ms-discovery
+    restart: always
+    networks:
+      - custom-network
+
+  skt-ms-search:
+    container_name: skt-ms-search
+    image: ms-search:1.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    ports:
+      - "9568:9568"
+    environment:
+      <<: *common-variables
+      SKT_MS_SEARCH_PORT: 9568
+      RESOURCE_KEYCLOAK: ms-search
+      URL_KEYCLOAK: ${URL_KEYCLOAK}
+      MASTER_ACCESS_KEY: ${MASTER_ACCESS_KEY}
+      MASTER_SECRET_KEY: ${MASTER_SECRET_KEY}
+      SECRET_CREDENTIAL_KEYCLOAK: BmUdX64b1zxezLqq45Y8B6PZiJIOytEi
+      SKT_MS_MINIO: http://172.18.13.136:8568
+    volumes:
+      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
+    depends_on:
+      - skt-ms-discovery
+      - skt-ms-minio
+    restart: always
+    networks:
+      - custom-network
+  skt-ms-cloth:
+    container_name: skt-ms-cloth
+    image: ms-cloth:1.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    ports:
+      - "7474:7474"
+    environment:
+      <<: *common-variables
+
+      SKT_MS_MINIO: http://skt-ms-minio:8568
+    volumes:
+      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
+    depends_on:
+      - skt-ms-discovery
+      - skt-ms-minio
+    restart: always
+    networks:
+      - custom-network
