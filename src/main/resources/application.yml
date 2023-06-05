@@ -10,22 +10,39 @@ spring:
         - id: skt-ms-tester
           uri: lb://skt-ms-tester
           predicates:
-            - Path=/ms-tester/**
+            - Path=/skt-ms-tester/**
           filters:
-            - RewritePath=/ms-tester/(?<path>.*), /$\{path}
+            - RewritePath=/skt-ms-tester/(?<path>.*), /$\{path}
         - id: skt-ms-auth
           uri: http://localhost:8080
           predicates:
-            - Path=/ms-auth/**
+            - Path=/skt-ms-auth/**
           filters:
-            - RewritePath=/ms-auth/(?<path>.*), /$\{path}
+            - RewritePath=/skt-ms-auth/(?<path>.*), /$\{path}
         - id: skt-ms-user
           uri: lb://skt-ms-user
           predicates:
-            - Path=/ms-user/**
+            - Path=/skt-ms-user/**
           filters:
             - RewritePath=/ms-user/(?<path>.*), /$\{path}
-
+        - id: skt-ms-product
+          uri: lb://skt-ms-product
+          predicates:
+              - Path=/skt-ms-product/**
+          filters:
+              - RewritePath=/skt-ms-product/(?<path>.*), /$\{path}
+        - id: skt-ms-cloth
+          uri: lb://skt-ms-cloth
+          predicates:
+              - Path=/skt-ms-cloth/**
+          filters:
+              - RewritePath=/skt-ms-cloth/(?<path>.*), /$\{path}
+        - id: skt-ms-order
+          uri: lb://skt-ms-order
+          predicates:
+              - Path=/skt-ms-order/**
+          filters:
+              - RewritePath=/skt-ms-order/(?<path>.*), /$\{path}
 
 management:
   endpoints:

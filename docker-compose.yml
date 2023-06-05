@@ -16,7 +16,7 @@ networks:
 services:
   skt-ms-discovery:
     container_name: skt-ms-discovery
-    image: ms-discovery:1.0.0
+    image: 3m3rs0n/skt-ms-discovery:1.0.0
     ports:
       - "8707:8707"
     environment:
@@ -32,7 +32,7 @@ services:
 
   skt-ms-gateway:
     container_name: skt-ms-gateway
-    image: ms-gateway:1.0.0
+    image: 3m3rs0n/skt-ms-gateway:2.0.0
     deploy:
       resources:
         limits:
@@ -49,13 +49,11 @@ services:
 
   skt-ms-user:
     container_name: skt-ms-user
-    image: ms-user:1.0.0
+    image: lanplay12w/ms-user:1.1.0
     deploy:
       resources:
         limits:
           memory: 1024m
-    ports:
-      - "7982:7982"
     environment:
       <<: *common-variables
       URL_KEYCLOAK: ${URL_KEYCLOAK}
@@ -64,8 +62,6 @@ services:
       MASTER_ACCESS_KEY: ${MASTER_ACCESS_KEY}
       MASTER_SECRET_KEY: ${MASTER_SECRET_KEY}
       SECRET_CREDENTIAL_KEYCLOAK: kUc0rQpCPU5LYZwBVxTOkSGnuk3ucQhX
-
-
     volumes:
       - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
     depends_on:
@@ -73,37 +69,14 @@ services:
     networks:
       - custom-network
 
-
-  skt-ms-inventory:
-    container_name: skt-ms-inventory
-    image: ms-inventory:1.0.0
-    deploy:
-      resources:
-        limits:
-          memory: 1024m
-    ports:
-      - "7071:7071"
-    environment:
-      <<: *common-variables
-      SERVER_URI: ${CONFIG_SERVER_URL}
-
-    volumes:
-      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
-    depends_on:
-      - skt-ms-discovery
-    restart: always
-    networks:
-      - custom-network
 
   skt-ms-minio:
     container_name: skt-ms-minio
-    image: ms-minio:1.0.0
+    image: lanplay12w/ms-minio:1.1.0
     deploy:
       resources:
         limits:
           memory: 1024m
-    ports:
-      - "8568:8568"
     environment:
       <<: *common-variables
       SKT_MS_MINIO_PORT: 8568
@@ -127,13 +100,11 @@ services:
 
   skt-ms-search:
     container_name: skt-ms-search
-    image: ms-search:1.0.0
+    image: lanplay12w/ms-search:1.1.0
     deploy:
       resources:
         limits:
           memory: 1024m
-    ports:
-      - "9568:9568"
     environment:
       <<: *common-variables
       SKT_MS_SEARCH_PORT: 9568
@@ -151,19 +122,18 @@ services:
     restart: always
     networks:
       - custom-network
+
+
   skt-ms-cloth:
     container_name: skt-ms-cloth
-    image: ms-cloth:1.0.0
+    image: 3m3rs0n/skt-ms-cloth:2.0.0
     deploy:
       resources:
         limits:
           memory: 1024m
-    ports:
-      - "7474:7474"
     environment:
       <<: *common-variables
-
-      SKT_MS_MINIO: http://skt-ms-minio:8568
+      SKT_MS_MINIO: http://skt-ms-minio
     volumes:
       - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
     depends_on:
@@ -172,3 +142,29 @@ services:
     restart: always
     networks:
       - custom-network
+
+  skt-ms-product:
+    container_name: skt-ms-product
+    image: 3m3rs0n/skt-ms-product:2.0.0
+    deploy:
+      resources:
+        limits:
+          memory: 1024m
+    environment:
+      <<: *common-variables
+      SKT_MS_MINIO: http://skt-ms-minio
+    volumes:
+      - ./directory_to_ignore/logs/:/directory_to_ignore/logs/
+    depends_on:
+      - skt-ms-discovery
+    restart: always
+    networks:
+      - custom-network
+  skt-front:
+    container_name: skt-front
+    image: 3m3rs0n/skt-front:2.0.0
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - custom-network
+
